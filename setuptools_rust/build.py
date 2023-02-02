@@ -126,6 +126,19 @@ class build_rust(RustCommand):
         else:
             dylib_paths = self.build_extension(ext, self.target)
         self.install_extension(ext, dylib_paths)
+        build_ext = cast(CommandBuildExt, self.get_finalized_command("build_ext"))
+        rmfile_base = os.path.dirname(build_ext.get_ext_fullpath("file"))
+        for rmfile in ext.remove_files:
+            log.info("Removing file %s", rmfile)
+            rmfile = os.path.join(rmfile_base, rmfile)
+            for f in glob.glob(rmfile):
+                try:
+                    if os.path.isfile(f):
+                        os.remove(f)
+                    else:
+                        shutil.rmtree(f)
+                except Exception as e:
+                    log.info("Removing file %s failed (%s)", rmfile, e)
 
     def build_extension(
         self, ext: RustExtension, forced_target_triple: Optional[str] = None

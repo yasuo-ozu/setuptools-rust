@@ -84,6 +84,8 @@ class RustExtension:
             `RUSTFLAGS` environment variable.
         rust_version: Minimum Rust compiler version required for this
             extension.
+        remove_files: Remove specified files after compilation. The path should
+            be relative to the 'Cargo.toml' path.
         quiet: Suppress Cargo's output.
         debug: Controls whether ``--debug`` or ``--release`` is passed to
             Cargo. If set to `None` (the default) then build type is
@@ -126,6 +128,7 @@ class RustExtension:
         features: Optional[Sequence[str]] = (),
         rustc_flags: Optional[Sequence[str]] = (),
         rust_version: Optional[str] = None,
+        remove_files: Optional[List[str]] = [],
         quiet: bool = False,
         debug: Optional[bool] = None,
         binding: Binding = Binding.PyO3,
@@ -149,6 +152,7 @@ class RustExtension:
         self.features = tuple(features or ())
         self.rustc_flags = tuple(rustc_flags or ())
         self.rust_version = rust_version
+        self.remove_files = remove_files
         self.quiet = quiet
         self.debug = debug
         self.binding = binding
@@ -310,6 +314,7 @@ class RustBin(RustExtension):
         cargo_manifest_args: Optional[Sequence[str]] = (),
         features: Optional[Sequence[str]] = (),
         rust_version: Optional[str] = None,
+        remove_files: Optional[List[str]] = [],
         quiet: bool = False,
         debug: Optional[bool] = None,
         strip: Strip = Strip.No,
@@ -322,6 +327,7 @@ class RustBin(RustExtension):
             cargo_manifest_args=cargo_manifest_args,
             features=features,
             rust_version=rust_version,
+            remove_files=remove_files,
             quiet=quiet,
             debug=debug,
             binding=Binding.Exec,

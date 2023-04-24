@@ -28,22 +28,8 @@ from typing_extensions import Literal
 from ._utils import format_called_process_error
 from .command import RustCommand
 from .extension import Binding, RustBin, RustExtension, Strip
-from .rustc_info import (
-    get_rust_host,
-    get_rust_target_list,
-    get_rustc_cfgs,
-    get_rust_version,
-)
+from .rustc_info import get_rust_host, get_rust_target_list, get_rustc_cfgs, get_rust_version
 from semantic_version import Version
-
-
-def _detect_toolchain_1_70_or_later() -> bool:
-    version = get_rust_version()
-
-    if version is None:
-        return False
-
-    return version.major > 1 or (version.major == 1 and version.minor >= 70)  # type: ignore
 
 
 class build_rust(RustCommand):
@@ -171,7 +157,7 @@ class build_rust(RustCommand):
 
         quiet = self.qbuild or ext.quiet
         debug = self._is_debug_build(ext)
-        is_toolchain_1_70_or_later = _detect_toolchain_1_70_or_later()
+        is_new_toolchain = get_rust_version() >= Version('1.70.0-nightly')
 
         cargo_args = self._cargo_args(
             ext=ext, target_triple=target_triple, release=not debug, quiet=quiet
@@ -192,7 +178,7 @@ class build_rust(RustCommand):
         else:
             # If toolchain >= 1.70.0, use '--crate-type' option of cargo.
             # See https://github.com/PyO3/setuptools-rust/issues/320
-            if is_toolchain_1_70_or_later:
+            if is_new_toolchain:
                 rustc_args = [
                     *ext.rustc_flags,
                 ]
@@ -226,7 +212,7 @@ class build_rust(RustCommand):
             ):
                 rustc_args.extend(["-C", f"link-args=-sSIDE_MODULE=2 -sWASM_BIGINT"])
 
-            if is_toolchain_1_70_or_later:
+            if is_new_toolchain:
                 cargo_args.extend(["--crate-type", "cdylib"])
 
             command = [
